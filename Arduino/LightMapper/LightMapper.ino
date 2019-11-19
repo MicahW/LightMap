@@ -1,13 +1,9 @@
-// Basic Bluetooth sketch BT_TALK
-// Connect the module and communicate using the serial monitor
-// COmmunicate with the BT module at 9600 (comms mode)
- 
 #include <SoftwareSerial.h>
 SoftwareSerial BTserial(2, 3); // RX | TX
  
 void setup() 
 {
-    BTserial.begin(9600);  
+    BTserial.begin(9600);  // Init bluetooth serial connection
 }
 
 // If a message is avaiable then read it and return num bytes read
@@ -22,6 +18,14 @@ int readBT(char* buf) {
   }
   buf[message_size] = '\0';
   return message_size;
+}
+
+// Write the message
+void writeBT(char* buf, int size) {
+  BTserial.write((char) size);
+  for (int i = 0; i < size; i++) {
+    BTserial.write(buf[i]);
+  }
 }
  
 void loop()
