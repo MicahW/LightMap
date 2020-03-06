@@ -10,6 +10,7 @@ struct MotorState {
   uint8_t bridge_1 : 2;  // pin offset for the second bridge
 };
 
+// Each motor bridge state to cycle between in order to make the motor spin using half steps
 const MotorState motor_states[MOTOR_STATE_COUNT] {
   MotorState {.bridge_count = 1, .bridge_0 = 0,},
   MotorState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 2},
@@ -21,6 +22,7 @@ const MotorState motor_states[MOTOR_STATE_COUNT] {
   MotorState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 3}
 };
 
+// Oopen the Bluetooth serial connection
 SoftwareSerial BTserial(2, 3); // RX | TX
  
 void setup() 
@@ -28,7 +30,7 @@ void setup()
 #ifdef DEBUG
   Serial.begin(9600);
 #endif
-    BTserial.begin(9600);  // Init bluetooth serial connection
+  BTserial.begin(9600);  // Init bluetooth serial connection
 }
 
 // Read a length encoded serial message over bluetooth
