@@ -1,7 +1,12 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
 
-#define MOTOR_STATE_COUNT 8
+#define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
+
+// Motor control takes up pins 2-9
+#define MOTOR_PIN_COUNT 8  // Number of pins to contorl motor
+#define RIGHT_MOTOR_START_NUMBER  2  // Start index of the left motor
+#define LEFT_MOTOR_START_NUMBER  6  // Start index of the right motor
 
 // A state the motor bridges can be in
 struct MotorState {
@@ -22,7 +27,7 @@ const MotorState motor_states[MOTOR_STATE_COUNT] {
   MotorState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 3}
 };
 
-// Oopen the Bluetooth serial connection
+// Define the bluetooth serial connection
 SoftwareSerial BTserial(2, 3); // RX | TX
  
 void setup() 
@@ -30,7 +35,12 @@ void setup()
 #ifdef DEBUG
   Serial.begin(9600);
 #endif
-  BTserial.begin(9600);  // Init bluetooth serial connection
+  // Set the motor pins to output
+  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (RIGHT_MOTOR_START_NUMBER + MOTOR_PIN_COUNT); pin++ ) {
+    pinMode(pin, OUTPUT);
+  }
+  // Init bluetooth serial connection
+  BTserial.begin(9600);
 }
 
 // Read a length encoded serial message over bluetooth
