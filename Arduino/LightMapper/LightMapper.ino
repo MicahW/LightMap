@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
 
+#define MIN_STEP_DELAY 2000  // Minimum delay in miliseconds of the motor (highest speed)
+#define MAX_STEP_DELAY 20000 // Maximum delay (lowest speed)
+
 #define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
 
 // Motor control takes up pins 2-9
@@ -9,27 +12,46 @@
 #define LEFT_MOTOR_START_NUMBER  6  // Start index of the right motor
 
 // A state the motor bridges can be in
-struct MotorState {
+struct MotorBridgeState {
   uint8_t bridge_count : 1;  // 0 for bridge_0 only, 1 for both bridges
   uint8_t bridge_0 : 2;  // pin offset for the first bridge
   uint8_t bridge_1 : 2;  // pin offset for the second bridge
 };
 
+// Current state of one motor
+struct MotorState {
+  // Hard coded data
+  const uint8_t reversed;  // 1 if this motor has a reversed step (one will, one wont)
+  const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
+
+  // Variable data
+  unsigned long last_step_time;  // Time of last motor step in miliseconds
+  unsigned long step_delay;  // Delay in miliseconds between each step (0 indicates no step should be taken)
+  uint8_t direction;  // <0 = foward, 1 = backward>
+  uint8_t current_bridge_state_index;  // Current index within the motor_bridge_states
+};
+
 // Each motor bridge state to cycle between in order to make the motor spin using half steps
-const MotorState motor_states[MOTOR_STATE_COUNT] {
-  MotorState {.bridge_count = 1, .bridge_0 = 0,},
-  MotorState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 2},
-  MotorState {.bridge_count = 1, .bridge_0 = 2,},
-  MotorState {.bridge_count = 2, .bridge_0 = 1, .bridge_1 = 2},
-  MotorState {.bridge_count = 1, .bridge_0 = 1,},
-  MotorState {.bridge_count = 2, .bridge_0 = 1, .bridge_1 = 3},
-  MotorState {.bridge_count = 1, .bridge_0 = 3,},
-  MotorState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 3}
+const MotorBridgeState motor_bridge_states[MOTOR_STATE_COUNT] {
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 0,},
+  MotorBridgeState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 2},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 2,},
+  MotorBridgeState {.bridge_count = 2, .bridge_0 = 1, .bridge_1 = 2},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 1,},
+  MotorBridgeState {.bridge_count = 2, .bridge_0 = 1, .bridge_1 = 3},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 3,},
+  MotorBridgeState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 3}
 };
 
 // Define the bluetooth serial connection
-SoftwareSerial BTserial(2, 3); // RX | TX
+const SoftwareSerial BTserial(2, 3); // RX | TX
  
+// Motor states for each motor
+MotorState motors_states[2] {
+  MotorState {.reversed = 0, .pin_0_index = RIGHT_MOTOR_START_NUMBER},  // Right motor
+  MotorState {.reversed = 1, .pin_0_index = LEFT_MOTOR_START_NUMBER}  // Left motor
+};
+
 void setup() 
 {
 #ifdef DEBUG
