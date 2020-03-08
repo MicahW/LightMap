@@ -76,12 +76,17 @@ MotorState motor_states[2] {
 // control_value: The one byte control value from a control message
 // motor_state_index: The index of the motor_state the delay is being set for
 void setMotorDelayAndDirection(uint8_t control_value, uint8_t motor_state_index) {
-  // Get the values from the message
+  // Get the direction and speed value from the control value
   uint8_t direction = (control_value & MOTOR_CONTROL_DIRECTION_MASK) >> MOTOR_CONTROL_DIRECTION_INDEX;
   unsigned long value = (unsigned long) control_value & MOTOR_CONTROL_VALUE_MASK; 
 
-  // Calculate the delay
-  unsigned long delay = MAX_STEP_DELAY - ((value * (MAX_STEP_DELAY - MIN_STEP_DELAY)) / MOTOR_CONTROL_VALUE_MASK);
+  // Calculate the delay, if the speed value is 0 then delay should also be zero
+  unsigned long delay = 0;
+  if (value > 0) {
+    delay = MAX_STEP_DELAY - ((value * (MAX_STEP_DELAY - MIN_STEP_DELAY)) / MOTOR_CONTROL_VALUE_MASK);
+  }
+
+  // Set the motor states
   motor_states[motor_state_index].step_delay = delay;
   motor_states[motor_state_index].direction = direction;
 }
