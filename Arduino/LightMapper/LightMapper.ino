@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <SoftwareSerial.h>
 
-#define MIN_STEP_DELAY 2000  // Minimum delay in miliseconds of the motor (highest speed)
+#define MIN_STEP_DELAY 2000  // Minimum delay in microseconds of the motor (highest speed)
 #define MAX_STEP_DELAY 20000 // Maximum delay (lowest speed)
 
 #define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
@@ -31,8 +31,8 @@ struct MotorState {
   const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
 
   // State information
-  unsigned long last_step_time;  // Time of last motor step in miliseconds
-  unsigned long step_delay;  // Delay in miliseconds between each step (0 indicates no step should be taken)
+  unsigned long last_step_time;  // Time of last motor step in microseconds
+  unsigned long step_delay;  // Delay in microseconds between each step (0 indicates no step should be taken)
   uint8_t direction;  // <0 = foward, 1 = backward>
   int8_t bridge_state_index;  // Current index within the motor_bridge_states
 };
@@ -94,7 +94,7 @@ void setMotorDelayAndDirection(uint8_t control_value, uint8_t motor_state_index)
 
 // Set the motor bridge states to step the motor if it is time to do so
 void stepMotorsIfTime() {
-  unsigned long current_time = millis();
+  unsigned long current_time = micros();
   for (uint8_t index = 0; index < MOTOR_COUNT; index++) {
     MotorState *motor_state = &motor_states[index];
 
