@@ -7,6 +7,7 @@
 #define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
 
 // Motor control takes up pins 2-9
+#define MOTOR_COUNT 2 // Number of motors
 #define MOTOR_PIN_COUNT 8  // Number of pins to contorl motor
 #define RIGHT_MOTOR_START_NUMBER  2  // Start index of the left motor
 #define LEFT_MOTOR_START_NUMBER  6  // Start index of the right motor
@@ -26,14 +27,14 @@ struct MotorBridgeState {
 // Current state of one motor
 struct MotorState {
   // Motor specific data
-  const uint8_t reversed;  // 1 if this motor has a reversed step (one will, one wont)
+  const uint8_t reversed;  // 1 if this motor has a reversed step
   const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
 
   // State information
   unsigned long last_step_time;  // Time of last motor step in miliseconds
   unsigned long step_delay;  // Delay in miliseconds between each step (0 indicates no step should be taken)
   uint8_t direction;  // <0 = foward, 1 = backward>
-  uint8_t bridge_state_index;  // Current index within the motor_bridge_states
+  int8_t bridge_state_index;  // Current index within the motor_bridge_states
 };
 
 // Each motor bridge state to cycle between in order to make the motor spin using half steps
@@ -52,7 +53,7 @@ const MotorBridgeState motor_bridge_states[MOTOR_STATE_COUNT] {
 const SoftwareSerial BTserial(2, 3); // RX | TX
  
 // States for each motor, starts as set for no movement
-MotorState motor_states[2] {
+MotorState motor_states[MOTOR_COUNT] {
   // Right Motor
   MotorState {  .reversed = 0,
                 .pin_0_index = RIGHT_MOTOR_START_NUMBER,
@@ -91,13 +92,50 @@ void setMotorDelayAndDirection(uint8_t control_value, uint8_t motor_state_index)
   motor_states[motor_state_index].direction = direction;
 }
 
+// Set the motor bridge states to step the motor if it is time to do so
+void stepMotorsIfTime() {
+  unsigned long current_time = millis();
+  for (uint8_t index = 0; index < MOTOR_COUNT; index++) {
+    MotorState *motor_state = &motor_states[index];
+
+    // If delay is set to zero then the motor should not be stepped
+    if (motor_state->step_delay == 0) {
+      continue;
+    }
+
+    // If enough time has not yet passed then the motor should not be stepped
+    if (current_time < (motor_state->last_step_time + motor_states->step_delay)) {
+      continue;
+    }
+
+    // Get direction to step the motor
+    int8_t incr = (motor_state->reversed == motor_state->direction) ? 1 : -1;
+    motor_state->bridge_state_index += incr;
+
+    // Turn all motor pins off
+    for (uint8_t pin_offset = 0; pin_offset < (MOTOR_PIN_COUNT); pin_offset++) {
+      digitalWrite(pin_offset + motor_state->pin_0_index, LOW);
+    }
+
+    // Turn the next motor pins on
+    MotorBridgeState *bridge_state = &motor_bridge_states[motor_state->bridge_state_index];
+    digitalWrite(bridge_state->bridge_0 + motor_state->pin_0_index, HIGH);
+    if (bridge_state->bridge_count == 2) {
+      digitalWrite(bridge_state->bridge_1 + motor_state->pin_0_index, HIGH);
+    }
+
+    // Set the new motor last read time
+    motor_state->last_step_time = current_time;
+  }
+}
+
 void setup() 
 {
 #ifdef DEBUG
   Serial.begin(9600);
 #endif
   // Set the motor pins to output
-  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (RIGHT_MOTOR_START_NUMBER + MOTOR_PIN_COUNT); pin++ ) {
+  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (LEFT_MOTOR_START_NUMBER + MOTOR_PIN_COUNT); pin++ ) {
     pinMode(pin, OUTPUT);
   }
   // Init bluetooth serial connection
