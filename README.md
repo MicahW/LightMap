@@ -1,5 +1,5 @@
 ### Light Map ###
-A two-wheeled Ardiono robot controlled by a Raspberry PI over Bluetooth that generates a heat map of light.
+A two-wheeled Arduino robot controlled by a Raspberry PI over Bluetooth that generates a heat map of light.
 
 #### Message Protocols ####
 Each message will contain a 1 byte message ID followed by the payload
