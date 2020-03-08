@@ -25,11 +25,11 @@ struct MotorBridgeState {
 
 // Current state of one motor
 struct MotorState {
-  // Hard coded data
+  // Motor specific data
   const uint8_t reversed;  // 1 if this motor has a reversed step (one will, one wont)
   const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
 
-  // Variable data
+  // State information
   unsigned long last_step_time;  // Time of last motor step in miliseconds
   unsigned long step_delay;  // Delay in miliseconds between each step (0 indicates no step should be taken)
   uint8_t direction;  // <0 = foward, 1 = backward>
@@ -51,10 +51,24 @@ const MotorBridgeState motor_bridge_states[MOTOR_STATE_COUNT] {
 // Define the bluetooth serial connection
 const SoftwareSerial BTserial(2, 3); // RX | TX
  
-// Motor states for each motor
+// States for each motor, starts as set for no movement
 MotorState motor_states[2] {
-  MotorState {.reversed = 0, .pin_0_index = RIGHT_MOTOR_START_NUMBER},  // Right motor
-  MotorState {.reversed = 1, .pin_0_index = LEFT_MOTOR_START_NUMBER}  // Left motor
+  // Right Motor
+  MotorState {  .reversed = 0,
+                .pin_0_index = RIGHT_MOTOR_START_NUMBER,
+                .last_step_time = 0,
+                .step_delay = 0,
+                .direction = 0,
+                .bridge_state_index = 0
+             },
+  // Left Motor
+  MotorState {  .reversed = 1,
+                .pin_0_index = LEFT_MOTOR_START_NUMBER,
+                .last_step_time = 0,
+                .step_delay = 0,
+                .direction = 0,
+                .bridge_state_index = 0
+             }
 };
 
 // Set the motor delay from a control value provided in a motor control message
