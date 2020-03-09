@@ -50,7 +50,7 @@ const MotorBridgeState motor_bridge_states[MOTOR_STATE_COUNT] {
 };
 
 // Define the bluetooth serial connection
-const SoftwareSerial BTserial(2, 3); // RX | TX
+const SoftwareSerial BTserial(10, 11); // RX | TX
  
 // States for each motor, starts as set for no movement
 MotorState motor_states[MOTOR_COUNT] {
