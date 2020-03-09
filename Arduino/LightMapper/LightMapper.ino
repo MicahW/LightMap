@@ -39,14 +39,14 @@ struct MotorState {
 
 // Each motor bridge state to cycle between in order to make the motor spin using half steps
 const MotorBridgeState motor_bridge_states[MOTOR_STATE_COUNT] {
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 0,},
-  MotorBridgeState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 2},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 2,},
-  MotorBridgeState {.bridge_count = 2, .bridge_0 = 1, .bridge_1 = 2},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 1,},
-  MotorBridgeState {.bridge_count = 2, .bridge_0 = 1, .bridge_1 = 3},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 3,},
-  MotorBridgeState {.bridge_count = 2, .bridge_0 = 0, .bridge_1 = 3}
+  MotorBridgeState {.bridge_count = 0, .bridge_0 = 0,},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 0, .bridge_1 = 2},
+  MotorBridgeState {.bridge_count = 0, .bridge_0 = 2,},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 1, .bridge_1 = 2},
+  MotorBridgeState {.bridge_count = 0, .bridge_0 = 1,},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 1, .bridge_1 = 3},
+  MotorBridgeState {.bridge_count = 0, .bridge_0 = 3,},
+  MotorBridgeState {.bridge_count = 1, .bridge_0 = 0, .bridge_1 = 3}
 };
 
 // Define the bluetooth serial connection
@@ -108,9 +108,13 @@ void stepMotorsIfTime() {
       continue;
     }
 
-    // Get direction to step the motor
+    // Set the bridge state index to the next index in the sequence
     int8_t incr = (motor_state->reversed == motor_state->direction) ? 1 : -1;
     motor_state->bridge_state_index += incr;
+    if (motor_state->bridge_state_index < 0) {
+      motor_state->bridge_state_index = MOTOR_STATE_COUNT - 1;
+    }
+    motor_state->bridge_state_index %= MOTOR_STATE_COUNT;
 
     // Turn all motor pins off
     for (uint8_t pin_offset = 0; pin_offset < (MOTOR_PIN_COUNT); pin_offset++) {
@@ -120,7 +124,7 @@ void stepMotorsIfTime() {
     // Turn the next motor pins on
     MotorBridgeState *bridge_state = &motor_bridge_states[motor_state->bridge_state_index];
     digitalWrite(bridge_state->bridge_0 + motor_state->pin_0_index, HIGH);
-    if (bridge_state->bridge_count == 2) {
+    if (bridge_state->bridge_count == 1) {
       digitalWrite(bridge_state->bridge_1 + motor_state->pin_0_index, HIGH);
     }
 
@@ -169,6 +173,5 @@ void writeBT(char* buf, int size) {
  
 void loop()
 {
-  char message_buf[256];
-  readBT(message_buf);
+  stepMotorsIfTime();
 }
