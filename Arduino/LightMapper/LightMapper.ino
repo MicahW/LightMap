@@ -9,7 +9,6 @@
 // Motor control takes up pins 2-9
 #define MOTOR_COUNT 2 // Number of motors
 #define MOTOR_PIN_COUNT 4  // Number of pins to control one motor
-#define TOTAL_MOTOR_PIN_COUNT 8 // Total number of motor pins
 #define RIGHT_MOTOR_START_NUMBER  2  // Start index of the left motor
 #define LEFT_MOTOR_START_NUMBER  6  // Start index of the right motor
 
@@ -140,7 +139,7 @@ void setup()
   Serial.begin(9600);
 #endif
   // Set the motor pins to output
-  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (LEFT_MOTOR_START_NUMBER + TOTAL_MOTOR_PIN_COUNT); pin++ ) {
+  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (LEFT_MOTOR_START_NUMBER + MOTOR_PIN_COUNT); pin++ ) {
     pinMode(pin, OUTPUT);
   }
   // Init bluetooth serial connection
