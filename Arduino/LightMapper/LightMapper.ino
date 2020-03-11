@@ -8,7 +8,8 @@
 
 // Motor control takes up pins 2-9
 #define MOTOR_COUNT 2 // Number of motors
-#define MOTOR_PIN_COUNT 8  // Number of pins to contorl motor
+#define MOTOR_PIN_COUNT 4  // Number of pins to control one motor
+#define TOTAL_MOTOR_PIN_COUNT 8 // Total number of motor pins
 #define RIGHT_MOTOR_START_NUMBER  2  // Start index of the left motor
 #define LEFT_MOTOR_START_NUMBER  6  // Start index of the right motor
 
@@ -19,9 +20,9 @@
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
-  uint8_t bridge_count : 1;  // 0 for bridge_0 only, 1 for both bridges
-  uint8_t bridge_0 : 2;  // pin offset for the first bridge
-  uint8_t bridge_1 : 2;  // pin offset for the second bridge
+  uint8_t bridge_count;  // 0 for bridge_0 only, 1 for both bridges
+  uint8_t bridge_0;  // pin offset for the first bridge
+  uint8_t bridge_1;  // pin offset for the second bridge
 };
 
 // Current state of one motor
@@ -104,7 +105,7 @@ void stepMotorsIfTime() {
     }
 
     // If enough time has not yet passed then the motor should not be stepped
-    if (current_time < (motor_state->last_step_time + motor_states->step_delay)) {
+    if (current_time < (motor_state->last_step_time + motor_state->step_delay)) {
       continue;
     }
 
@@ -139,7 +140,7 @@ void setup()
   Serial.begin(9600);
 #endif
   // Set the motor pins to output
-  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (LEFT_MOTOR_START_NUMBER + MOTOR_PIN_COUNT); pin++ ) {
+  for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (LEFT_MOTOR_START_NUMBER + TOTAL_MOTOR_PIN_COUNT); pin++ ) {
     pinMode(pin, OUTPUT);
   }
   // Init bluetooth serial connection
