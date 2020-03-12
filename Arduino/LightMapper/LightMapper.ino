@@ -11,11 +11,20 @@
 #define MOTOR_PIN_COUNT 4  // Number of pins to control one motor
 #define RIGHT_MOTOR_START_NUMBER  2  // Start index of the left motor
 #define LEFT_MOTOR_START_NUMBER  6  // Start index of the right motor
+#define RIGHT_MOTOR_INDEX 0  // Index of right motor in motor_states
+#define LEFT_MOTOR_INDEX 1  // Index of left motor
 
 // Motor control mask information
 #define MOTOR_CONTROL_DIRECTION_MASK 0x80
 #define MOTOR_CONTROL_DIRECTION_INDEX 7
 #define MOTOR_CONTROL_VALUE_MASK 0x7F
+
+// Receive buffer length for incoming bluetooth messages
+#define RECEIVE_BUFFER_LENGTH 16
+
+// Message IDs and sizes
+#define MOTOR_CONTROL_ID 1
+#define MOTOR_CONTROL_MESSAGE_SIZE 2
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -71,6 +80,9 @@ MotorState motor_states[MOTOR_COUNT] {
                 .bridge_state_index = 0
              }
 };
+
+// Buffer for receiving bluetooth messages
+uint8_t receive_buffer[RECEIVE_BUFFER_LENGTH];
 
 // Set the motor delay from a control value provided in a motor control message
 //
@@ -133,7 +145,35 @@ void stepMotorsIfTime() {
   }
 }
 
-void setup() 
+// Read a fixed number of bytes into the receive buffer
+// num_bytes: The number of bytes to read into the buffer
+void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
+  for (uint8_t index = 0; index < num_bytes; index++) {
+    receive_buffer[index] = BTserial.read();
+  }
+}
+
+// Process a bluetooth message if one is available
+void processBluetoothMessageIfAvailable() {
+    // Check if a messages is available
+    if (!BTserial.available()) {
+      return;
+    }
+
+    // Read the message ID
+    uint8_t message_id = BTserial.read();
+
+    // If a Motor Control Message
+    if (message_id == MOTOR_CONTROL_ID) {
+      readBytesIntoReceiveBuffer(MOTOR_CONTROL_MESSAGE_SIZE);
+      // Set motor speed from control bytes
+      setMotorDelayAndDirection(receive_buffer[0], RIGHT_MOTOR_INDEX);
+      setMotorDelayAndDirection(receive_buffer[1], LEFT_MOTOR_INDEX);
+    }
+}
+
+// Arduino one time setup
+void setup()
 {
 #ifdef DEBUG
   Serial.begin(9600);
@@ -146,32 +186,9 @@ void setup()
   BTserial.begin(9600);
 }
 
-// Read a length encoded serial message over bluetooth
-// buf: message buffer to read into
-// return: num bytes read
-int readBT(char* buf) {
-  if (!BTserial.available()) {
-    return 0;
-  }
-  char message_size = BTserial.read();
-  for (char pos = 0; pos < message_size; pos++) {
-    buf[pos] = BTserial.read();    
-  }
-  buf[message_size] = '\0';
-  return message_size;
-}
-
-// Read a length encoded serial message from bluetooth
-// buf: message buffer to read from
-// size: message size
-void writeBT(char* buf, int size) {
-  BTserial.write((char) size);
-  for (int i = 0; i < size; i++) {
-    BTserial.write(buf[i]);
-  }
-}
- 
+// Control loop, processes messages and runs motors
 void loop()
 {
   stepMotorsIfTime();
+  processBluetoothMessageIfAvailable();
 }
