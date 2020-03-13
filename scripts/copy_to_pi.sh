@@ -1,6 +1,8 @@
 #!/bin/bash
 
-SCRIPTDIR=$(dirname "$(readlink -f "$0")")
+# Ideally we would use readlink -f here to handle certain edge cases, but
+# Mac OSX bash doesn't support it properly
+SCRIPTDIR=$(dirname "$0")
 
 # Copy the Pi folder to the Rasberry PI home directory
 # You must create a file LightMap/scripts/ssh_address.txt with the
