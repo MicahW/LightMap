@@ -2,7 +2,8 @@
 A two-wheeled Arduino robot controlled by a Raspberry PI over Bluetooth that generates a heat map of light.
 
 #### Message Protocols ####
-Each message will contain a 1 byte message ID followed by the payload
+Each message will contain a 1 byte message ID followed by a multi-byte
+payload consisting of a number of bytes determined by the particular ID.
 
-- Raw motor control message [ ID = 1 | right motor control byte | left motor control byte]
-  -   motor control byte = {1 bit <0 = foward, 1 = backward> 7 bits speed in range (0 - 0x7F)}
+- Motor control message [ \<ID = 1\> \<right motor control byte\> \<left motor control byte\>]
+  - motor control byte = {1 bit \<0 = foward, 1 = backward\> 7 bits speed in range (0 - 0x7F)}
