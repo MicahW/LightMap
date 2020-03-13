@@ -149,6 +149,7 @@ void stepMotorsIfTime() {
 // num_bytes: The number of bytes to read into the buffer
 void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
   for (uint8_t index = 0; index < num_bytes; index++) {
+    while(!BTserial.available()) {}
     receive_buffer[index] = BTserial.read();
   }
 }
@@ -175,15 +176,13 @@ void processBluetoothMessageIfAvailable() {
 // Arduino one time setup
 void setup()
 {
-#ifdef DEBUG
-  Serial.begin(9600);
-#endif
   // Set the motor pins to output
   for(int pin = RIGHT_MOTOR_START_NUMBER; pin < (LEFT_MOTOR_START_NUMBER + MOTOR_PIN_COUNT); pin++ ) {
     pinMode(pin, OUTPUT);
   }
   // Init bluetooth serial connection
   BTserial.begin(9600);
+  BTserial.listen();
 }
 
 // Control loop, processes messages and runs motors
