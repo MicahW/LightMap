@@ -3,6 +3,7 @@
 # Provide number where /dev/input/event{number} is the file for reading gampad events from
 
 import sys
+import math
 from evdev import InputDevice, categorize, ecodes
 
 class GamePadController:
@@ -23,10 +24,35 @@ class GamePadController:
         # Set up current position (x, y) as centered
         self.position = [0, 0]
 
+    def get_angle_and_magnitude(self, x_pos, y_pos):
+        x = float(x_pos)
+        y = float(y_pos)
+
+        magnitude = math.sqrt((x * x) + (y * y))
+
+        if y == 0:
+            angle = 0.0
+        else:
+            angle = math.degrees(math.atan(x/ y))
+
+        # Reverse angle if in quadrent 1 or 3
+        if (x > 0 and y > 0) or (x < 0 and y < 0):
+            angle = 90 - angle
+
+        # Acount for quadrent 2
+        if (x <= 0) and (y > 0):
+            angle = abs(angle) + 90
+        # Acount for quadrent 3
+        elif(x < 0) and (y <= 0):
+            angle = abs(angle) + 180
+        # Acount for quadrent 4
+        elif(x >= 0) and (y < 0):
+            angle = abs(angle) + 270
+
+        return angle, magnitude
 
     def send_motor_control(self):
-        print("{}, {}".format(self.position[0], self.position[1]))
-
+        angle, magnitude = self.get_angle_and_magnitude(self.position[0], self.position[1])
 
     def run(self):
         for event in self.gamepad.read_loop():
