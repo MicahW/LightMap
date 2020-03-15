@@ -4,6 +4,7 @@
 
 import sys
 import math
+from Controller import *
 from evdev import InputDevice, categorize, ecodes
 
 class GamePadController:
@@ -14,7 +15,7 @@ class GamePadController:
     # Threshold for setting read gampad positions as zero
     DEADZONE_THRESHOLD = 130
 
-    MAX_MAGNITUDE = 38000.0
+    MAX_MAGNITUDE = 39000.0
     MAX_MOTOR_SPEED = 127.0
 
     def __init__(self, event_file_number):
@@ -23,9 +24,11 @@ class GamePadController:
         self.gamepad = InputDevice(event_path)
         print(self.gamepad)
 
-
         # Set up current position (x, y) as centered
         self.position = [0, 0]
+
+        # The robot controller
+        self.controller = Controller()
 
     def get_angle_and_magnitude(self, x_pos, y_pos):
         x = float(x_pos)
@@ -72,7 +75,7 @@ class GamePadController:
     def get_motor_speed_and_direction(self, speed):
         direction = True if speed > 0 else False
         speed = (abs(speed) * self.MAX_MOTOR_SPEED) / self.MAX_MAGNITUDE 
-        return direction, speed
+        return direction, int(speed)
 
     def send_motor_control(self):
         angle, magnitude = self.get_angle_and_magnitude(self.position[0], self.position[1])
@@ -80,7 +83,7 @@ class GamePadController:
         left_speed = self.get_normalized_motor_speed(angle, True)
         right_direction, right_speed = self.get_motor_speed_and_direction(right_speed * magnitude)
         left_direction, left_speed = self.get_motor_speed_and_direction(left_speed * magnitude)
-        print("{}, {} --- {}, {}".format(right_direction, right_speed, left_direction, left_speed))
+        self.controller.motor(right_direction, right_speed, left_direction, left_speed)
 
     def run(self):
         for event in self.gamepad.read_loop():
