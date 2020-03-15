@@ -14,6 +14,9 @@ class GamePadController:
     # Threshold for setting read gampad positions as zero
     DEADZONE_THRESHOLD = 130
 
+    MAX_MAGNITUDE = 38000.0
+    MAX_MOTOR_SPEED = 127.0
+
     def __init__(self, event_file_number):
         # Set up game pad object
         event_path = "/dev/input/event{}".format(event_file_number)
@@ -51,7 +54,7 @@ class GamePadController:
 
         return angle, magnitude
 
-    def get_motor_speed(self, angle, is_left):
+    def get_normalized_motor_speed(self, angle, is_left):
         if is_left:
             angle = (angle + 90) % 360
 
@@ -65,12 +68,19 @@ class GamePadController:
         if angle > 180:
             speed *= -1
         return speed
+    
+    def get_motor_speed_and_direction(self, speed):
+        direction = True if speed > 0 else False
+        speed = (abs(speed) * self.MAX_MOTOR_SPEED) / self.MAX_MAGNITUDE 
+        return direction, speed
 
     def send_motor_control(self):
         angle, magnitude = self.get_angle_and_magnitude(self.position[0], self.position[1])
-        right_speed = self.get_motor_speed(angle, False)
-        left_speed = self.get_motor_speed(angle, True)
-        print("{}, {}").format(left_speed, right_speed)
+        right_speed = self.get_normalized_motor_speed(angle, False)
+        left_speed = self.get_normalized_motor_speed(angle, True)
+        right_direction, right_speed = self.get_motor_speed_and_direction(right_speed * magnitude)
+        left_direction, left_speed = self.get_motor_speed_and_direction(left_speed * magnitude)
+        print("{}, {} --- {}, {}".format(right_direction, right_speed, left_direction, left_speed))
 
     def run(self):
         for event in self.gamepad.read_loop():
