@@ -51,8 +51,26 @@ class GamePadController:
 
         return angle, magnitude
 
+    def get_motor_speed(self, angle, is_left):
+        if is_left:
+            angle = (angle + 90) % 360
+
+        if angle >= 90 and angle <= 180:
+            return 1
+        elif angle >= 270:
+            return -1
+
+        speed = ((angle % 90) / 45) - 1
+
+        if angle > 180:
+            speed *= -1
+        return speed
+
     def send_motor_control(self):
         angle, magnitude = self.get_angle_and_magnitude(self.position[0], self.position[1])
+        right_speed = self.get_motor_speed(angle, False)
+        left_speed = self.get_motor_speed(angle, True)
+        print("{}, {}").format(left_speed, right_speed)
 
     def run(self):
         for event in self.gamepad.read_loop():
