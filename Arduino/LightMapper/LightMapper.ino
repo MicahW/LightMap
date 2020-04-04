@@ -168,6 +168,11 @@ void setServoPos(uint8_t degrees_byte) {
   int8_t servo_degrees = static_cast<int8_t>(degrees_byte);
   int8_t servo_center = (SERVO_MAX_DEGREES + SERVO_MIN_DEGREES) / 2;
   int8_t translated_degrees = servo_center + servo_degrees;
+
+  // Set the motor position if the position is valid
+  if ((translated_degrees < SERVO_MIN_DEGREES) || (translated_degrees > SERVO_MAX_DEGREES)) {
+    return;
+  }
   servo_motor.write(translated_degrees);
 }
 
