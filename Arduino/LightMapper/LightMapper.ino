@@ -35,6 +35,8 @@
 // Message IDs and sizes
 #define MOTOR_CONTROL_ID 1
 #define MOTOR_CONTROL_MESSAGE_SIZE 2
+#define SERVERO_CONTROL_ID 2
+#define SERVERO_CONTROL_MESSAGE_SIZE 1
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -158,6 +160,17 @@ void stepMotorsIfTime() {
   }
 }
 
+/**
+ * Sets the Servo motor position from a motor control message byte
+ * degrees_byte: The servo control byte
+ */
+void setServoPos(uint8_t degrees_byte) {
+  int8_t servo_degrees = static_cast<int8_t>(degrees_byte);
+  int8_t servo_center = (SERVO_MAX_DEGREES + SERVO_MIN_DEGREES) / 2;
+  int8_t translated_degrees = servo_center + servo_degrees;
+  servo_motor.write(translated_degrees);
+}
+
 // Read a fixed number of bytes into the receive buffer
 // num_bytes: The number of bytes to read into the buffer
 void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
@@ -183,6 +196,13 @@ void processBluetoothMessageIfAvailable() {
       // Set motor speed from control bytes
       setMotorDelayAndDirection(receive_buffer[0], RIGHT_MOTOR_INDEX);
       setMotorDelayAndDirection(receive_buffer[1], LEFT_MOTOR_INDEX);
+    }
+
+    // If a servo control message
+    if (message_id == SERVERO_CONTROL_ID) {
+      readBytesIntoReceiveBuffer(SERVERO_CONTROL_MESSAGE_SIZE);
+      // set servo position
+      setServoPos(receive_buffer[0]);
     }
 }
 
