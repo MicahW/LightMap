@@ -1,8 +1,18 @@
 #include <stdint.h>
+#include <Servo.h>
 #include <SoftwareSerial.h>
 
 #define MIN_STEP_DELAY 2000  // Minimum delay in microseconds of the motor (highest speed)
 #define MAX_STEP_DELAY 20000 // Maximum delay (lowest speed)
+
+// Pin mappings
+#define BLUETOOTH_RX_PIN 12
+#define BLUETOOTH_TX_PIN 13
+#define SERVO_CONTROL_PIN 11
+
+// Servo motor positions
+#define SERVO_MIN_DEGREES 20
+#define SERVO_MAX_DEGREES 180
 
 #define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
 
@@ -59,7 +69,10 @@ const MotorBridgeState motor_bridge_states[MOTOR_STATE_COUNT] {
 };
 
 // Define the bluetooth serial connection
-const SoftwareSerial BTserial(12, 13); // RX | TX
+const SoftwareSerial BTserial(BLUETOOTH_RX_PIN, BLUETOOTH_TX_PIN);
+
+// Create the servo motor object
+const Servo servo_motor;
  
 // States for each motor, starts as set for no movement
 MotorState motor_states[MOTOR_COUNT] {
@@ -183,6 +196,10 @@ void setup()
   // Init bluetooth serial connection
   BTserial.begin(9600);
   BTserial.listen();
+
+  // Attach the servo motor and center it
+  servo_motor.attach(SERVO_CONTROL_PIN);
+  servo_motor.write((SERVO_MAX_DEGREES + SERVO_MIN_DEGREES) / 2);
 }
 
 // Control loop, processes messages and runs motors
