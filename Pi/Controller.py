@@ -12,6 +12,9 @@ class Controller:
     MOTOR_CONTROL_FORWARD = 0x00
     MOTOR_CONTROL_BACKWARD = 0x80
 
+    SERVO_CONTROL_ID = 0x02
+    SERVO_MAX_DEGREES = 80
+
     def __init__(self, device_name=DEFAULT_DEVICE_NAME):
         '''
         Initialize Controller object and open serial device for read/write.
@@ -19,6 +22,11 @@ class Controller:
 
         self.device_name = device_name
         self.device = serial.Serial(device_name)
+
+    def servo(self, degrees=0):
+        ''' Set servo position '''
+        assert (abs(degrees) <= self.SERVO_MAX_DEGREES)
+        self.transmit(struct.pack('Bb', self.SERVO_CONTROL_ID, degrees))
 
     def motor(self, right_forward=True, right_speed=0, left_forward=True,
               left_speed=0):
