@@ -16,6 +16,8 @@
 #define SERVO_MIN_DEGREES 20
 #define SERVO_MAX_DEGREES 180
 
+// Rotation step speed
+#define ROTATE_SPEED 0x1F
 
 #define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
 
@@ -44,6 +46,8 @@
 #define ULTRASONIC_RESPONSE_SIZE 4
 #define MOVE_STRAIGHT_ID 4
 #define STOP_ID 5
+#define ROTATE_ID 5
+#define ROTATE_REQUEST_SIZE 2
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -179,6 +183,42 @@ void stepMotorsIfTime() {
 }
 
 /**
+ * Rotate using the motors
+ * direction: <0 = right, 1 = left>
+ * steps: number of steps to rotate by
+ */
+void rotate(uint8_t direction, uint8_t steps) {
+  // Reset steps taken
+  steps_taken = 0;
+
+  // Set the motor states for rotation
+  uint8_t left_motor_speed = ROTATE_SPEED;
+  uint8_t right_motor_speed = ROTATE_SPEED;
+
+  // Determin which motor should be reversed
+  if (direction == 0) {
+    left_motor_speed |= MOTOR_CONTROL_DIRECTION_MASK;
+  } else if (direction == 1) {
+    right_motor_speed |= MOTOR_CONTROL_DIRECTION_MASK;
+  } else {
+    return;
+  }
+
+  // Set the motor states
+  setMotorDelayAndDirection(right_motor_speed, RIGHT_MOTOR_INDEX);
+  setMotorDelayAndDirection(left_motor_speed, LEFT_MOTOR_INDEX);
+
+  // Allow the motors to complete each step
+  while (steps_taken != static_cast<uint32_t>(steps)) {
+    stepMotorsIfTime();
+  }
+
+  // Stop the motors
+  setMotorDelayAndDirection(0, RIGHT_MOTOR_INDEX);
+  setMotorDelayAndDirection(0, LEFT_MOTOR_INDEX);
+}
+
+/**
  * Sets the Servo motor position from a motor control message byte
  * degrees_byte: The servo control byte
  */
@@ -273,6 +313,13 @@ void processBluetoothMessageIfAvailable() {
       setMotorDelayAndDirection(0x7F, RIGHT_MOTOR_INDEX);
       setMotorDelayAndDirection(0x7F, LEFT_MOTOR_INDEX);
       steps_taken = 0;
+    }
+
+    // If this is a rotate request
+    if (message_id == ROTATE_ID) {
+      readBytesIntoReceiveBuffer(ROTATE_REQUEST_SIZE);
+      rotate(receive_buffer[0], receive_buffer[1]);
+      // TODO(mwallberg): send the motor rotate response
     }
 
     // If this is a stop request
