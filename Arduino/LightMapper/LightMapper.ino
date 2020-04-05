@@ -40,8 +40,8 @@
 #define MOTOR_CONTROL_MESSAGE_SIZE 2
 #define SERVERO_CONTROL_ID 2
 #define SERVERO_CONTROL_MESSAGE_SIZE 1
-#define ULTRASONIC_REQUEST_ID 3
-#define ULTRASONIC_REQUEST_SIZE 4
+#define ULTRASONIC_ID 3
+#define ULTRASONIC_RESPONSE_SIZE 4
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -219,9 +219,9 @@ void sendBluetoothMessage(uint8_t *buffer, int size, uint8_t message_id) {
  * Send the UltraSonicResponse with the duration
  */
 void sendUltraSonicResponse(uint32_t duration) {
-  uint8_t buffer[ULTRASONIC_REQUEST_SIZE];
+  uint8_t buffer[ULTRASONIC_RESPONSE_SIZE];
   memcpy(buffer, duration, sizeof(duration));
-  sendBluetoothMessage(buffer, ULTRASONIC_REQUEST_SIZE, ULTRASONIC_REQUEST_ID);
+  sendBluetoothMessage(buffer, ULTRASONIC_RESPONSE_SIZE, ULTRASONIC_ID);
 }
 
 // Process a bluetooth message if one is available
@@ -250,7 +250,7 @@ void processBluetoothMessageIfAvailable() {
     }
 
     // If a ultrasonic request
-    if (message_id == ULTRASONIC_REQUEST_ID) {
+    if (message_id == ULTRASONIC_ID) {
       sendUltraSonicResponse(getUltrasonicPulse());
     }
 }
