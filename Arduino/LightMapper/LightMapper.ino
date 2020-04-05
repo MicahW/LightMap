@@ -43,7 +43,7 @@
 #define ULTRASONIC_ID 3
 #define ULTRASONIC_RESPONSE_SIZE 4
 #define MOVE_STRAIGHT_ID 4
-#define MOVE_STRAIGHT_SIZE 0
+#define STOP_ID 5
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -273,6 +273,13 @@ void processBluetoothMessageIfAvailable() {
       setMotorDelayAndDirection(0x7F, RIGHT_MOTOR_INDEX);
       setMotorDelayAndDirection(0x7F, LEFT_MOTOR_INDEX);
       steps_taken = 0;
+    }
+
+    // If this is a stop request
+    if (message_id == STOP_ID) {
+      setMotorDelayAndDirection(0, RIGHT_MOTOR_INDEX);
+      setMotorDelayAndDirection(0, LEFT_MOTOR_INDEX);
+      // TODO(mwallberg): send the steps taken to the PI
     }
 }
 
