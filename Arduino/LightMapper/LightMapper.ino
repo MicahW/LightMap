@@ -266,6 +266,14 @@ void processBluetoothMessageIfAvailable() {
     if (message_id == ULTRASONIC_ID) {
       sendUltraSonicResponse(getUltrasonicPulse());
     }
+
+    // If this is a move straight request
+    if (message_id == MOVE_STRAIGHT_ID) {
+      // Set both motors to move foward and reset steps taken
+      setMotorDelayAndDirection(0x7F, RIGHT_MOTOR_INDEX);
+      setMotorDelayAndDirection(0x7F, LEFT_MOTOR_INDEX);
+      steps_taken = 0;
+    }
 }
 
 // Arduino one time setup
