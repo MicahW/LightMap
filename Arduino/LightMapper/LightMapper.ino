@@ -40,6 +40,8 @@
 #define MOTOR_CONTROL_MESSAGE_SIZE 2
 #define SERVERO_CONTROL_ID 2
 #define SERVERO_CONTROL_MESSAGE_SIZE 1
+#define ULTRASONIC_REQUEST_ID 3
+#define ULTRASONIC_REQUEST_SIZE 4
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -198,6 +200,28 @@ void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
     while(!BTserial.available()) {}
     receive_buffer[index] = BTserial.read();
   }
+}
+
+/**
+ * Send a bluetooth message from payload bytes
+ * buffer: pointer to payload buffer
+ * size: size of payload buffer
+ * message_id: message id for the message
+ */
+void sendBluetoothMessage(uint8_t *buffer, int size, uint8_t message_id) {
+  BTserial.write(message_id);
+  for (int i = 0; i < size; i++) {
+    BTserial.write(buffer[i]);
+  }
+}
+
+/**
+ * Send the UltraSonicResponse with the duration
+ */
+void sendUltraSonicResponse(uint32_t duration) {
+  uint8_t buffer[ULTRASONIC_REQUEST_SIZE];
+  memcpy(buffer, duration, sizeof(duration));
+  sendBluetoothMessage(buffer, ULTRASONIC_REQUEST_SIZE, ULTRASONIC_REQUEST_ID);
 }
 
 // Process a bluetooth message if one is available
