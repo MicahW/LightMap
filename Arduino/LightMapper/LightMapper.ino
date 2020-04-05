@@ -9,10 +9,13 @@
 #define BLUETOOTH_RX_PIN 12
 #define BLUETOOTH_TX_PIN 13
 #define SERVO_CONTROL_PIN 11
+#define TRIGGER_PIN 1
+#define ECHO_PIN 0
 
 // Servo motor positions
 #define SERVO_MIN_DEGREES 20
 #define SERVO_MAX_DEGREES 180
+
 
 #define MOTOR_STATE_COUNT 8  // Number of motor states in a cycle
 
@@ -176,6 +179,18 @@ void setServoPos(uint8_t degrees_byte) {
   servo_motor.write(translated_degrees);
 }
 
+/**
+ * Get the duration of a ultrasonic pulse
+ */
+uint32_t getUltrasonicPulse() {
+  // Pulse trigger pin
+  digitalWrite(TRIGGER_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIGGER_PIN, LOW);
+  uint32_t duration = pulseIn(ECHO_PIN, HIGH);
+  return duration;
+}
+
 // Read a fixed number of bytes into the receive buffer
 // num_bytes: The number of bytes to read into the buffer
 void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
@@ -225,6 +240,11 @@ void setup()
   // Attach the servo motor and center it
   servo_motor.attach(SERVO_CONTROL_PIN);
   servo_motor.write((SERVO_MAX_DEGREES + SERVO_MIN_DEGREES) / 2);
+
+  // Set up ultrasonic pins
+  pinMode(TRIGGER_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  digitalWrite(TRIGGER_PIN, LOW);
 }
 
 // Control loop, processes messages and runs motors
