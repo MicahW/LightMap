@@ -248,6 +248,11 @@ void processBluetoothMessageIfAvailable() {
       // set servo position
       setServoPos(receive_buffer[0]);
     }
+
+    // If a ultrasonic request
+    if (message_id == ULTRASONIC_REQUEST_ID) {
+      sendUltraSonicResponse(getUltrasonicPulse());
+    }
 }
 
 // Arduino one time setup
