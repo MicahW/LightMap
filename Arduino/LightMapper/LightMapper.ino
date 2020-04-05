@@ -42,6 +42,8 @@
 #define SERVERO_CONTROL_MESSAGE_SIZE 1
 #define ULTRASONIC_ID 3
 #define ULTRASONIC_RESPONSE_SIZE 4
+#define MOVE_STRAIGHT_ID 4
+#define MOVE_STRAIGHT_SIZE 0
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -104,6 +106,10 @@ MotorState motor_states[MOTOR_COUNT] {
 // Buffer for receiving bluetooth messages
 uint8_t receive_buffer[RECEIVE_BUFFER_LENGTH];
 
+// Amount of steps taken by the motor, used to record distance travled in a straight line and
+// to control how many steps are used in a turn operation
+uint32_t steps_taken = 0;
+
 // Set the motor delay from a control value provided in a motor control message
 //
 // control_value: The one byte control value from a control message
@@ -127,6 +133,7 @@ void setMotorDelayAndDirection(uint8_t control_value, uint8_t motor_state_index)
 // Set the motor bridge states to step the motor if it is time to do so
 void stepMotorsIfTime() {
   unsigned long current_time = micros();
+  bool step_taken = false;
   for (uint8_t index = 0; index < MOTOR_COUNT; index++) {
     MotorState *motor_state = &motor_states[index];
 
@@ -139,6 +146,8 @@ void stepMotorsIfTime() {
     if (current_time < (motor_state->last_step_time + motor_state->step_delay)) {
       continue;
     }
+
+    step_taken = true;
 
     // Set the bridge state index to the next index in the sequence
     int8_t incr = (motor_state->reversed == motor_state->direction) ? 1 : -1;
@@ -162,6 +171,10 @@ void stepMotorsIfTime() {
 
     // Set the new motor last read time
     motor_state->last_step_time = current_time;
+  }
+  // Increment steps taken if a step was taken by either motor, this is usefull only when the motors are in lock step
+  if (step_taken) {
+    steps_taken ++;
   }
 }
 
