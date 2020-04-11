@@ -45,9 +45,11 @@
 #define ULTRASONIC_REQUEST_ID 3
 #define ULTRASONIC_REPONSE_ID 4
 #define ULTRASONIC_RESPONSE_SIZE 4
-#define MOVE_STRAIGHT_ID 5
-#define STOP_ID 6
-#define ROTATE_ID 7
+#define PING_REQUEST_ID 5
+#define PING_RESPONSE_ID 6
+#define MOVE_STRAIGHT_ID 7
+#define STOP_ID 8
+#define ROTATE_ID 9
 #define ROTATE_REQUEST_SIZE 2
 
 // A state the motor bridge pins can be in
@@ -288,8 +290,13 @@ void processBluetoothMessageIfAvailable() {
     // Read the message ID
     uint8_t message_id = BTserial.read();
 
-    // If a Motor Control Message
-    if (message_id == MOTOR_CONTROL_ID) {
+    // If a ping request
+    if (message_id == PING_REQUEST_ID) {
+      sendBluetoothMessage(nullptr, 0, PING_RESPONSE_ID);
+    }
+
+    // If a motor control message
+    else if (message_id == MOTOR_CONTROL_ID) {
       readBytesIntoReceiveBuffer(MOTOR_CONTROL_MESSAGE_SIZE);
       // Set motor speed from control bytes
       setMotorDelayAndDirection(receive_buffer[0], RIGHT_MOTOR_INDEX);
@@ -297,19 +304,19 @@ void processBluetoothMessageIfAvailable() {
     }
 
     // If a servo control message
-    if (message_id == SERVERO_CONTROL_ID) {
+    else if (message_id == SERVERO_CONTROL_ID) {
       readBytesIntoReceiveBuffer(SERVERO_CONTROL_MESSAGE_SIZE);
       // set servo position
       setServoPos(receive_buffer[0]);
     }
 
     // If a ultrasonic request
-    if (message_id == ULTRASONIC_REPONSE_ID) {
+    else if (message_id == ULTRASONIC_REPONSE_ID) {
       sendUltraSonicResponse(getUltrasonicPulse());
     }
 
     // If this is a move straight request
-    if (message_id == MOVE_STRAIGHT_ID) {
+    else if (message_id == MOVE_STRAIGHT_ID) {
       // Set both motors to move foward and reset steps taken
       setMotorDelayAndDirection(0x7F, RIGHT_MOTOR_INDEX);
       setMotorDelayAndDirection(0x7F, LEFT_MOTOR_INDEX);
@@ -317,14 +324,14 @@ void processBluetoothMessageIfAvailable() {
     }
 
     // If this is a rotate request
-    if (message_id == ROTATE_ID) {
+    else if (message_id == ROTATE_ID) {
       readBytesIntoReceiveBuffer(ROTATE_REQUEST_SIZE);
       rotate(receive_buffer[0], receive_buffer[1]);
       // TODO(mwallberg): send the motor rotate response
     }
 
     // If this is a stop request
-    if (message_id == STOP_ID) {
+    else if (message_id == STOP_ID) {
       setMotorDelayAndDirection(0, RIGHT_MOTOR_INDEX);
       setMotorDelayAndDirection(0, LEFT_MOTOR_INDEX);
       // TODO(mwallberg): send the steps taken to the PI
