@@ -276,7 +276,7 @@ void sendBluetoothMessage(uint8_t *buffer, int size, uint8_t message_id) {
  */
 void sendUltraSonicResponse(uint32_t duration) {
   uint8_t buffer[ULTRASONIC_RESPONSE_SIZE];
-  memcpy(buffer, duration, sizeof(duration));
+  memcpy(buffer, &duration, sizeof(duration));
   sendBluetoothMessage(buffer, ULTRASONIC_RESPONSE_SIZE, ULTRASONIC_REPONSE_ID);
 }
 
@@ -311,7 +311,7 @@ void processBluetoothMessageIfAvailable() {
     }
 
     // If a ultrasonic request
-    else if (message_id == ULTRASONIC_REPONSE_ID) {
+    else if (message_id == ULTRASONIC_REQUEST_ID) {
       sendUltraSonicResponse(getUltrasonicPulse());
     }
 
