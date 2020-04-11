@@ -6,7 +6,8 @@ Each message will contain a 1 byte message ID followed by a multi-byte
 payload consisting of a number of bytes determined by the particular ID.
 
 ```
-Message      ::= Motor | Servo | UltraSonicReq | UltraSonicResp
+Message      ::= Motor | Servo | UltraSonicReq | UltraSonicResp |
+                 PingReq | PingResp
 
 Motor        ::= '0x01' RightMotor LeftMotor
 RightMotor   ::= MotorByte
@@ -23,4 +24,7 @@ ServoAngle   ::= SignedByte # -80 thru 80
 UltraSonicReq   ::= '0x03'
 UltraSonicResp  ::= '0x04' 32BitUnsigned
 32BitUnsigned   ::= '0x00000000' thru '0xFFFFFFFF'
+
+PingReq      ::= '0x05'
+PingResp     ::= '0x06'
 ```
