@@ -21,6 +21,10 @@ class Controller:
     PING_REQUEST_CONTROL_ID = 0x05
     PING_RESPONSE_CONTROL_ID = 0x06
 
+    MOVE_STRAIGHT_REQUEST_ID = 0x07
+
+    STOP_REQUEST_ID = 0x08
+
     def __init__(self, device_name=DEFAULT_DEVICE_NAME):
         '''
         Initialize Controller object and open serial device for read/write.
@@ -33,6 +37,14 @@ class Controller:
         ''' Set servo position '''
         assert (abs(degrees) <= self.SERVO_MAX_DEGREES)
         self.transmit(struct.pack('Bb', self.SERVO_CONTROL_ID, degrees))
+
+    def move_straight(self):
+        ''' Move the robot straight untill a motor stop message is sent '''
+        self.transmit(struct.pack('B', self.MOVE_STRAIGHT_REQUEST_ID)) 
+
+    def stop(self):
+        ''' Request that the robot stop moving '''
+        self.transmit(struct.pack('B', self.STOP_REQUEST_ID)) 
 
     def motor(self, right_forward=True, right_speed=0, left_forward=True,
               left_speed=0):
