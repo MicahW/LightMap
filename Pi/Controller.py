@@ -15,6 +15,12 @@ class Controller:
     SERVO_CONTROL_ID = 0x02
     SERVO_MAX_DEGREES = 80
 
+    ULTRASONIC_REQUEST_CONTROL_ID = 0x03
+    ULTRASONIC_RESPONSE_CONTROL_ID = 0x04
+
+    PING_REQUEST_CONTROL_ID = 0x05
+    PING_RESPONSE_CONTROL_ID = 0x06
+
     def __init__(self, device_name=DEFAULT_DEVICE_NAME):
         '''
         Initialize Controller object and open serial device for read/write.
@@ -53,7 +59,44 @@ class Controller:
 
         self.transmit(struct.pack('BBB', control_byte, right_byte, left_byte))
 
-    def transmit(self, bytes):
+    def ultrasonic(self):
+        '''
+        Request current value from the ultra sonic sensor.  Returned value
+        is a 4-byte unsigned int.
+        '''
+
+        # Send the request
+        self.transmit(struct.pack('B', self.ULTRASONIC_REQUEST_CONTROL_ID))
+
+        # Read the response
+        response = self.receive(5)
+
+        control_byte, value = struct.unpack('<BI', response)
+
+        assert control_byte == self.ULTRASONIC_RESPONSE_CONTROL_ID
+        assert 0 <= value and value < 2**32
+
+        return value
+
+    def ping(self):
+        ''' Send ping to ensure remote connection. '''
+
+        # Send the request
+        self.transmit(struct.pack('B', self.PING_REQUEST_CONTROL_ID))
+
+        # Receeive the response
+        response = self.receive(1)
+
+        (control_byte, ) = struct.unpack('B', response)
+
+        assert control_byte == self.PING_RESPONSE_CONTROL_ID
+
+    def transmit(self, data):
         ''' Transmit bytes to the serial device. '''
 
-        self.device.write(bytes)
+        self.device.write(data)
+
+    def receive(self, n):
+        ''' Receive n bytes from the serial device '''
+
+        return self.device.read(n)
