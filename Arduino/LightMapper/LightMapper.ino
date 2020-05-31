@@ -79,49 +79,39 @@ static const MotorBridgeState kMotorBridgeStates[kMotorStateCount] {
 
 // Current state of one motor
 struct MotorState {
+  MotorState(const uint8_t reversed_value, const uint8_t pin_0_index_value) :
+    reversed(reversed_value),
+    pin_0_index(pin_0_index_value) {}
+
   // Motor specific data
   const uint8_t reversed;  // 1 if this motor has a reversed step
   const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
 
   // State information
-  unsigned long last_step_time;  // Time of last motor step in microseconds
-  unsigned long step_delay;  // Delay in microseconds between each step (0 indicates no step should be taken)
-  uint8_t direction;  // <0 = foward, 1 = backward>
-  int8_t bridge_state_index;  // Current index within the kMotorBridgeStates
+  unsigned long last_step_time = 0;  // Time of last motor step in microseconds
+  unsigned long step_delay = 0;  // Delay in microseconds between each step (0 indicates no step should be taken)
+  uint8_t direction = 0;  // <0 = foward, 1 = backward>
+  int8_t bridge_state_index = 0;  // Current index within the kMotorBridgeStates
 };
 
 // Define the bluetooth serial connection
-const SoftwareSerial BTserial(kBluetoothRxPin, kBluetoothTxPin);
+static const SoftwareSerial BTserial(kBluetoothRxPin, kBluetoothTxPin);
 
 // Create the servo motor object
-const Servo servo_motor;
+static const Servo servo_motor;
  
 // States for each motor, starts as set for no movement
-MotorState motor_states[kMotorCount] {
-  // Right Motor
-  MotorState {  .reversed = 0,
-                .pin_0_index = kRightMotorStartNumber,
-                .last_step_time = 0,
-                .step_delay = 0,
-                .direction = 0,
-                .bridge_state_index = 0
-             },
-  // Left Motor
-  MotorState {  .reversed = 1,
-                .pin_0_index = kLeftMotorStartNumber,
-                .last_step_time = 0,
-                .step_delay = 0,
-                .direction = 0,
-                .bridge_state_index = 0
-             }
+static MotorState motor_states[kMotorCount] {
+  MotorState(0, kRightMotorStartNumber),  // Right motor
+  MotorState(0, kLeftMotorStartNumber)  // Left motor
 };
 
 // Buffer for receiving bluetooth messages
-uint8_t receive_buffer[kReceiveBufferLenght];
+static uint8_t receive_buffer[kReceiveBufferLenght];
 
 // Amount of steps taken by the motor, used to record distance travled in a straight line and
 // to control how many steps are used in a turn operation
-uint32_t steps_taken = 0;
+static uint32_t steps_taken = 0;
 
 // Set the motor delay from a control value provided in a motor control message
 //
