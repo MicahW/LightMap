@@ -54,9 +54,27 @@ static const size_t kRotateRequestSize = 2;
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
+  MotorBridgeState(uint8_t bridge_0_value, uint8_t bridge_1_value = 0xFF) {
+    bridge_0 = bridge_0_value;
+    bridge_1 = bridge_1_value;
+    bridge_count = (bridge_1 == 0xFF) ? 0 : 1;
+  }
+
   uint8_t bridge_count;  // 0 for bridge_0 only, 1 for both bridges
   uint8_t bridge_0;  // pin offset for the first bridge
   uint8_t bridge_1;  // pin offset for the second bridge
+};
+
+// Each motor bridge state to cycle between in order to make the motor spin using half steps
+static const MotorBridgeState kMotorBridgeStates[kMotorStateCount] {
+  MotorBridgeState(0),
+  MotorBridgeState(0, 2),
+  MotorBridgeState(2),
+  MotorBridgeState(1, 2),
+  MotorBridgeState(1),
+  MotorBridgeState(1, 3),
+  MotorBridgeState(3),
+  MotorBridgeState(0, 3)
 };
 
 // Current state of one motor
@@ -69,19 +87,7 @@ struct MotorState {
   unsigned long last_step_time;  // Time of last motor step in microseconds
   unsigned long step_delay;  // Delay in microseconds between each step (0 indicates no step should be taken)
   uint8_t direction;  // <0 = foward, 1 = backward>
-  int8_t bridge_state_index;  // Current index within the motor_bridge_states
-};
-
-// Each motor bridge state to cycle between in order to make the motor spin using half steps
-const MotorBridgeState motor_bridge_states[kMotorStateCount] {
-  MotorBridgeState {.bridge_count = 0, .bridge_0 = 0,},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 0, .bridge_1 = 2},
-  MotorBridgeState {.bridge_count = 0, .bridge_0 = 2,},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 1, .bridge_1 = 2},
-  MotorBridgeState {.bridge_count = 0, .bridge_0 = 1,},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 1, .bridge_1 = 3},
-  MotorBridgeState {.bridge_count = 0, .bridge_0 = 3,},
-  MotorBridgeState {.bridge_count = 1, .bridge_0 = 0, .bridge_1 = 3}
+  int8_t bridge_state_index;  // Current index within the kMotorBridgeStates
 };
 
 // Define the bluetooth serial connection
@@ -170,7 +176,7 @@ void stepMotorsIfTime() {
     }
 
     // Turn the next motor pins on
-    MotorBridgeState *bridge_state = &motor_bridge_states[motor_state->bridge_state_index];
+    MotorBridgeState *bridge_state = &kMotorBridgeStates[motor_state->bridge_state_index];
     digitalWrite(bridge_state->bridge_0 + motor_state->pin_0_index, HIGH);
     if (bridge_state->bridge_count == 1) {
       digitalWrite(bridge_state->bridge_1 + motor_state->pin_0_index, HIGH);
