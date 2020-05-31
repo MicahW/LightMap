@@ -138,42 +138,42 @@ void stepMotorsIfTime() {
   unsigned long current_time = micros();
   bool step_taken = false;
   for (uint8_t index = 0; index < kMotorCount; index++) {
-    MotorState *motor_state = &motor_states[index];
+    MotorState& motor_state = motor_states[index];
 
     // If delay is set to zero then the motor should not be stepped
-    if (motor_state->step_delay == 0) {
+    if (motor_state.step_delay == 0) {
       continue;
     }
 
     // If enough time has not yet passed then the motor should not be stepped
-    if (current_time < (motor_state->last_step_time + motor_state->step_delay)) {
+    if (current_time < (motor_state.last_step_time + motor_state.step_delay)) {
       continue;
     }
 
     step_taken = true;
 
     // Set the bridge state index to the next index in the sequence
-    int8_t incr = (motor_state->reversed == motor_state->direction) ? 1 : -1;
-    motor_state->bridge_state_index += incr;
-    if (motor_state->bridge_state_index < 0) {
-      motor_state->bridge_state_index = kMotorStateCount - 1;
+    int8_t incr = (motor_state.reversed == motor_state.direction) ? 1 : -1;
+    motor_state.bridge_state_index += incr;
+    if (motor_state.bridge_state_index < 0) {
+      motor_state.bridge_state_index = kMotorStateCount - 1;
     }
-    motor_state->bridge_state_index %= kMotorStateCount;
+    motor_state.bridge_state_index %= kMotorStateCount;
 
     // Turn all motor pins off
     for (uint8_t pin_offset = 0; pin_offset < (kMotorPinCount); pin_offset++) {
-      digitalWrite(pin_offset + motor_state->pin_0_index, LOW);
+      digitalWrite(pin_offset + motor_state.pin_0_index, LOW);
     }
 
     // Turn the next motor pins on
-    MotorBridgeState *bridge_state = &kMotorBridgeStates[motor_state->bridge_state_index];
-    digitalWrite(bridge_state->bridge_0 + motor_state->pin_0_index, HIGH);
-    if (bridge_state->bridge_count == 1) {
-      digitalWrite(bridge_state->bridge_1 + motor_state->pin_0_index, HIGH);
+    const MotorBridgeState& bridge_state = kMotorBridgeStates[motor_state.bridge_state_index];
+    digitalWrite(bridge_state.bridge_0 + motor_state.pin_0_index, HIGH);
+    if (bridge_state.bridge_count == 1) {
+      digitalWrite(bridge_state.bridge_1 + motor_state.pin_0_index, HIGH);
     }
 
     // Set the new motor last read time
-    motor_state->last_step_time = current_time;
+    motor_state.last_step_time = current_time;
   }
   // Increment steps taken if a step was taken by either motor, this is usefull only when the motors are in lock step
   if (step_taken) {
