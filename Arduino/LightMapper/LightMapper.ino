@@ -6,11 +6,11 @@ static const uint32_t kMinStepDelay = 2000;  // Minimum delay in microseconds of
 static const uint32_t kMaxStepDelay = 20000;  // Maximum delay (lowest speed)
 
 // Pin mappings
-static const uint32_t kBluetoothRxPin = 12;
-static const uint32_t kBluetoothTxPin = 13;
-static const uint32_t kServoControlPin = 11;
-static const uint32_t kUltrasonicTriggerPin = 1;
-static const uint32_t kUltrasconicEchoPin = 0;
+static const size_t kBluetoothRxPin = 12;
+static const size_t kBluetoothTxPin = 13;
+static const size_t kServoControlPin = 11;
+static const size_t kUltrasonicTriggerPin = 1;
+static const size_t kUltrasconicEchoPin = 0;
 
 // Servo motor positions
 static const uint32_t kServoMinDegrees = 20;
@@ -19,38 +19,38 @@ static const uint32_t kServoMaxDegrees = 180;
 // Rotation step speed
 static const uint32_t kRotateSpeed = 0x1F;
 
-static const uint32_t kMotorStateCount = 8;  // Number of motor states in a cycle
+static const size_t kMotorStateCount = 8;  // Number of motor states in a cycle
 
 // Motor control takes up pins 2-9
-static const uint32_t kMotorCount = 2; // Number of motors
-static const uint32_t kMotorPinCount = 4;  // Number of pins to control one motor
-static const uint32_t kRightMotorStartNumber = 2;  // Start index of the left motor
-static const uint32_t kLeftMotorStartNumber = 6;  // Start index of the right motor
-static const uint32_t kRighMotorIndex = 0;  // Index of right motor in motor_states
-static const uint32_t kLeftMotorIndex = 1; // Index of left motor
+static const size_t kMotorCount = 2; // Number of motors
+static const size_t kMotorPinCount = 4;  // Number of pins to control one motor
+static const size_t kRightMotorStartNumber = 2;  // Start index of the left motor
+static const size_t kLeftMotorStartNumber = 6;  // Start index of the right motor
+static const size_t kRighMotorIndex = 0;  // Index of right motor in motor_states
+static const size_t kLeftMotorIndex = 1; // Index of left motor
 
 // Motor control mask information
-static const uint32_t kMotorControlDirectionMask = 0x80;
-static const uint32_t kMotorControlDirectionIndex = 7;
-static const uint32_t kMotorControlValueMask = 0x7F;
+static const uint8_t kMotorControlDirectionMask = 0x80;
+static const uint8_t kMotorControlDirectionIndex = 7;
+static const uint8_t kMotorControlValueMask = 0x7F;
 
 // Receive buffer length for incoming bluetooth messages
-static const uint32_t kReceiveBufferLenght = 16;
+static const size_t kReceiveBufferLenght = 16;
 
 // Message IDs and sizes
-static const uint32_t kMotorControlId = 1;
-static const uint32_t kMotorControlMessageSize = 2;
-static const uint32_t kServoControlId = 2;
-static const uint32_t kServoControlMessageSize = 1;
-static const uint32_t kUltrasonicRequestId = 3;
-static const uint32_t kUltrasonicResponseId = 4;
-static const uint32_t kUltrasonicResponseSize = 4;
-static const uint32_t kPingRequestId = 5;
-static const uint32_t kPingResponseId = 6;
-static const uint32_t kMoveStraightId = 7;
-static const uint32_t kStopId = 8;
-static const uint32_t kRotateId = 9;
-static const uint32_t kRotateRequestSize = 2;
+static const size_t kMotorControlId = 1;
+static const size_t kMotorControlMessageSize = 2;
+static const size_t kServoControlId = 2;
+static const size_t kServoControlMessageSize = 1;
+static const size_t kUltrasonicRequestId = 3;
+static const size_t kUltrasonicResponseId = 4;
+static const size_t kUltrasonicResponseSize = 4;
+static const size_t kPingRequestId = 5;
+static const size_t kPingResponseId = 6;
+static const size_t kMoveStraightId = 7;
+static const size_t kStopId = 8;
+static const size_t kRotateId = 9;
+static const size_t kRotateRequestSize = 2;
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
