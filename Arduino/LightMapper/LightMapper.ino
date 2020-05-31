@@ -103,7 +103,7 @@ static const Servo servo_motor;
 // States for each motor, starts as set for no movement
 static MotorState motor_states[kMotorCount] {
   MotorState(0, kRightMotorStartNumber),  // Right motor
-  MotorState(0, kLeftMotorStartNumber)  // Left motor
+  MotorState(1, kLeftMotorStartNumber)  // Left motor
 };
 
 // Buffer for receiving bluetooth messages
