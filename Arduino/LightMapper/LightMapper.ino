@@ -88,8 +88,8 @@ struct MotorState {
   const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
 
   // State information
-  unsigned long last_step_time = 0;  // Time of last motor step in microseconds
-  unsigned long step_delay = 0;  // Delay in microseconds between each step (0 indicates no step should be taken)
+  uint32_t last_step_time = 0;  // Time of last motor step in microseconds
+  uint32_t step_delay = UINT32_MAX;  // Delay in microseconds between each step (max indicates no step should be taken)
   uint8_t direction = 0;  // <0 = foward, 1 = backward>
   int8_t bridge_state_index = 0;  // Current index within the kMotorBridgeStates
 };
@@ -123,7 +123,7 @@ void setMotorDelayAndDirection(uint8_t control_value, uint8_t motor_state_index)
   unsigned long value = (unsigned long) control_value & kMotorControlValueMask;
 
   // Calculate the delay, if the speed value is 0 then delay should also be zero
-  unsigned long delay = 0;
+  unsigned long delay = UINT32_MAX;
   if (value > 0) {
     delay = kMaxStepDelay - ((value * (kMaxStepDelay - kMinStepDelay)) / kMotorControlValueMask);
   }
@@ -140,8 +140,8 @@ void stepMotorsIfTime() {
   for (uint8_t index = 0; index < kMotorCount; index++) {
     MotorState& motor_state = motor_states[index];
 
-    // If delay is set to zero then the motor should not be stepped
-    if (motor_state.step_delay == 0) {
+    // If delay is set to the max value then the motor should not be stepped
+    if (motor_state.step_delay == UINT32_MAX) {
       continue;
     }
 
