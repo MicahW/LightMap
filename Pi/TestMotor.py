@@ -7,5 +7,5 @@ import time
 controller = Controller()
 controller.ping()
 controller.move_straight()
-time.sleep(1)
+time.sleep(3)
 controller.stop()
