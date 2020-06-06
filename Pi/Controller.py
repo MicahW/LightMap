@@ -25,6 +25,8 @@ class Controller:
 
     STOP_REQUEST_ID = 0x08
 
+    ROTATE_REQUEST_ID = 0x09
+
     def __init__(self, device_name=DEFAULT_DEVICE_NAME):
         '''
         Initialize Controller object and open serial device for read/write.
@@ -102,6 +104,15 @@ class Controller:
         (control_byte, ) = struct.unpack('B', response)
 
         assert control_byte == self.PING_RESPONSE_CONTROL_ID
+
+    def rotate(self, clockwise=True):
+        '''
+        Send a request to rotate, clockwise (True) or counter
+        clockwise (False).
+        '''
+
+        self.transmit(struct.pack('BB', self.ROTATE_REQUEST_ID,
+                                  (0 if clockwise else 1)))
 
     def transmit(self, data):
         ''' Transmit bytes to the serial device. '''
