@@ -2,8 +2,10 @@
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
-static const uint32_t kMinStepDelay = 2000;  // Minimum delay in microseconds of the motor (highest speed)
-static const uint32_t kMaxStepDelay = 20000;  // Maximum delay (lowest speed)
+static const uint32_t kMinStepDelay = 1500;  // Minimum delay in microseconds of the motor (highest speed)
+static const uint32_t kMaxStepDelay = 14000;  // Maximum delay (lowest speed)
+static const uint32_t kStepDelayIncr = 15;  // Increment value of delay when ramping up or down
+static const uint32_t kStepDelayIncrDelay = 2000;  // Interval at which step delay should be incremented
 
 // Pin mappings
 static const size_t kBluetoothRxPin = 12;
@@ -88,8 +90,10 @@ struct MotorState {
   const uint8_t pin_0_index;  // Index of pin zero, the rest of the pins will be in sequence
 
   // State information
-  unsigned long last_step_time = 0;  // Time of last motor step in microseconds
-  unsigned long step_delay = 0;  // Delay in microseconds between each step (0 indicates no step should be taken)
+  uint32_t last_step_time = 0;  // Time of last motor step in microseconds
+  uint32_t last_step_delay_incr_time = 0;  // Time of last step delay increment
+  uint32_t target_step_delay = UINT32_MAX;  // The step delay that that should be ramped up / down to
+  uint32_t step_delay = UINT32_MAX;  // Delay in microseconds between each step (max indicates no step should be taken)
   uint8_t direction = 0;  // <0 = foward, 1 = backward>
   int8_t bridge_state_index = 0;  // Current index within the kMotorBridgeStates
 };
@@ -123,13 +127,13 @@ void setMotorDelayAndDirection(uint8_t control_value, uint8_t motor_state_index)
   unsigned long value = (unsigned long) control_value & kMotorControlValueMask;
 
   // Calculate the delay, if the speed value is 0 then delay should also be zero
-  unsigned long delay = 0;
+  unsigned long delay = UINT32_MAX;
   if (value > 0) {
     delay = kMaxStepDelay - ((value * (kMaxStepDelay - kMinStepDelay)) / kMotorControlValueMask);
   }
 
   // Set the motor states
-  motor_states[motor_state_index].step_delay = delay;
+  motor_states[motor_state_index].target_step_delay = delay;
   motor_states[motor_state_index].direction = direction;
 }
 
@@ -140,13 +144,38 @@ void stepMotorsIfTime() {
   for (uint8_t index = 0; index < kMotorCount; index++) {
     MotorState& motor_state = motor_states[index];
 
-    // If delay is set to zero then the motor should not be stepped
-    if (motor_state.step_delay == 0) {
-      continue;
+    // Check if it is time to increment the step delay
+    if (current_time > (motor_state.last_step_delay_incr_time + kStepDelayIncrDelay)) {
+      // If the delay has not reached the target delay then move the delay closer to the target delay
+      if (motor_state.step_delay > motor_state.target_step_delay) {
+        motor_state.step_delay -= kStepDelayIncr;
+        if (motor_state.step_delay < motor_state.target_step_delay) {
+          motor_state.step_delay = motor_state.target_step_delay;
+        }
+      } else if (motor_state.step_delay < motor_state.target_step_delay) {
+        motor_state.step_delay += kStepDelayIncr;
+        if (motor_state.step_delay > motor_state.target_step_delay) {
+          motor_state.step_delay = motor_state.target_step_delay;
+        }
+      }
+
+      // If the the delay is in between the max step delay and no movement delay, move it to the correct spot
+      if (motor_state.step_delay > kMaxStepDelay) {
+        motor_state.step_delay = (motor_state.target_step_delay == UINT32_MAX) ?  UINT32_MAX : kMaxStepDelay;
+      }
+
+      // Set the last step delay incr time
+      motor_state.last_step_delay_incr_time = current_time;
     }
 
     // If enough time has not yet passed then the motor should not be stepped
     if (current_time < (motor_state.last_step_time + motor_state.step_delay)) {
+      continue;
+    }
+
+
+    // If delay is set to the max value then the motor should not be stepped
+    if (motor_state.step_delay == UINT32_MAX) {
       continue;
     }
 
