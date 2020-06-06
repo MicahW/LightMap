@@ -2,6 +2,9 @@
 
 import serial
 import struct
+import logging
+
+logger = logging.getLogger('Controller')
 
 
 class Controller:
@@ -37,16 +40,31 @@ class Controller:
 
     def servo(self, degrees=0):
         ''' Set servo position '''
+
+        logger.debug(f'servo: enter: degrees={degrees}')
+
         assert (abs(degrees) <= self.SERVO_MAX_DEGREES)
         self.transmit(struct.pack('Bb', self.SERVO_CONTROL_ID, degrees))
 
+        logger.debug('servo: exit')
+
     def move_straight(self):
         ''' Move the robot straight untill a motor stop message is sent '''
-        self.transmit(struct.pack('B', self.MOVE_STRAIGHT_REQUEST_ID)) 
+
+        logger.debug('move_straight: enter')
+
+        self.transmit(struct.pack('B', self.MOVE_STRAIGHT_REQUEST_ID))
+
+        logger.debug('move_straight: exit')
 
     def stop(self):
         ''' Request that the robot stop moving '''
-        self.transmit(struct.pack('B', self.STOP_REQUEST_ID)) 
+
+        logger.debug('stop: enter')
+
+        self.transmit(struct.pack('B', self.STOP_REQUEST_ID))
+
+        logger.debug('stop: exit')
 
     def motor(self, right_forward=True, right_speed=0, left_forward=True,
               left_speed=0):
@@ -60,6 +78,11 @@ class Controller:
 
         assert isinstance(left_forward, bool)
         assert 0 <= left_speed and left_speed < 128
+
+        logger.debug(f'motor: enter: right_forward={right_forward}, '
+                     f'right_speed={right_speed}, '
+                     f'left_forward={left_forward}, '
+                     f'left_speed={left_speed}')
 
         control_byte = self.MOTOR_CONTROL_ID
 
@@ -79,6 +102,8 @@ class Controller:
         is a 4-byte unsigned int.
         '''
 
+        logger.debug('ultrasonic: enter')
+
         # Send the request
         self.transmit(struct.pack('B', self.ULTRASONIC_REQUEST_CONTROL_ID))
 
@@ -90,10 +115,14 @@ class Controller:
         assert control_byte == self.ULTRASONIC_RESPONSE_CONTROL_ID
         assert 0 <= value and value < 2**32
 
+        logger.debug(f'ultrasonic: exit: value={value}')
+
         return value
 
     def ping(self):
         ''' Send ping to ensure remote connection. '''
+
+        logger.debug('ping: enter')
 
         # Send the request
         self.transmit(struct.pack('B', self.PING_REQUEST_CONTROL_ID))
@@ -105,21 +134,33 @@ class Controller:
 
         assert control_byte == self.PING_RESPONSE_CONTROL_ID
 
+        logger.debug('ping: exit')
+
     def rotate(self, clockwise=True):
         '''
         Send a request to rotate, clockwise (True) or counter
         clockwise (False).
         '''
 
+        logger.debug(f'rotate: enter: clockwise={clockwise}')
+
         self.transmit(struct.pack('BB', self.ROTATE_REQUEST_ID,
                                   (0 if clockwise else 1)))
 
+        logger.debug('rotate: exit')
+
     def transmit(self, data):
         ''' Transmit bytes to the serial device. '''
+
+        logger.debug(f'transmit: write {len(data)} bytes: {data}')
 
         self.device.write(data)
 
     def receive(self, n):
         ''' Receive n bytes from the serial device '''
 
-        return self.device.read(n)
+        logger.debug(f'receive: read {n} bytes')
+
+        data = self.device.read(n)
+
+        logger.debug(f'receive: {data}')
