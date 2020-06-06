@@ -268,17 +268,34 @@ void setServoPos(uint8_t degrees_byte) {
 uint32_t getUltrasonicPulse() {
   // Pulse trigger pin
   digitalWrite(kUltrasonicTriggerPin, HIGH);
-  delayMicroseconds(10);
+
+  // Delay 10 micros
+  uint32_t start_time = micros();
+  while (micros() < (start_time + 10)) {
+    stepMotorsIfTime();
+  }
+
   digitalWrite(kUltrasonicTriggerPin, LOW);
-  uint32_t duration = pulseIn(kUltrasconicEchoPin, HIGH);
-  return duration;
+  // uint32_t duration = pulseIn(kUltrasconicEchoPin, HIGH);
+
+  // Wait for pin to go to high, then record the time it takes to go back to low
+  while(digitalRead(kUltrasconicEchoPin) == LOW) {
+    stepMotorsIfTime();
+  }
+  start_time = micros();
+  while(digitalRead(kUltrasconicEchoPin) == HIGH) {
+    stepMotorsIfTime();
+  }
+  return micros() - start_time;
 }
 
 // Read a fixed number of bytes into the receive buffer
 // num_bytes: The number of bytes to read into the buffer
 void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
   for (uint8_t index = 0; index < num_bytes; index++) {
-    while(!BTserial.available()) {}
+    while(!BTserial.available()) {
+      stepMotorsIfTime();
+    }
     receive_buffer[index] = BTserial.read();
   }
 }

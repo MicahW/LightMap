@@ -5,7 +5,16 @@ import time
 # Test script for motor messaging
 
 controller = Controller()
-controller.ping()
-controller.move_straight()
-time.sleep(3)
-controller.stop()
+try:
+    controller.ping()
+    controller.move_straight()
+    while True:
+        time.sleep(0.2)
+        v = controller.ultrasonic()
+        print(v)
+        if v < 4000:
+            controller.stop()
+            break
+except Exception as e:
+    controller.stop()
+    print(e)
