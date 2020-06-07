@@ -99,7 +99,7 @@ class Controller:
         # Receeive the response
         response = self.receive(1)
 
-        (control_byte, ) = struct.unpack('B', response)
+        control_byte = struct.unpack('B', response)[0]
 
         assert control_byte == self.PING_RESPONSE_CONTROL_ID
 

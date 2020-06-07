@@ -8,11 +8,9 @@ static const uint32_t kStepDelayIncr = 15;  // Increment value of delay when ram
 static const uint32_t kStepDelayIncrDelay = 2000;  // Interval at which step delay should be incremented
 
 // Pin mappings
-static const size_t kBluetoothRxPin = 12;
-static const size_t kBluetoothTxPin = 13;
 static const size_t kServoControlPin = 11;
-static const size_t kUltrasonicTriggerPin = 1;
-static const size_t kUltrasconicEchoPin = 0;
+static const size_t kUltrasonicTriggerPin = 13;
+static const size_t kUltrasconicEchoPin = 12;
 
 // Servo motor positions
 static const uint32_t kServoMinDegrees = 20;
@@ -97,9 +95,6 @@ struct MotorState {
   uint8_t direction = 0;  // <0 = foward, 1 = backward>
   int8_t bridge_state_index = 0;  // Current index within the kMotorBridgeStates
 };
-
-// Define the bluetooth serial connection
-static const SoftwareSerial BTserial(kBluetoothRxPin, kBluetoothTxPin);
 
 // Create the servo motor object
 static const Servo servo_motor;
@@ -293,10 +288,10 @@ uint32_t getUltrasonicPulse() {
 // num_bytes: The number of bytes to read into the buffer
 void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
   for (uint8_t index = 0; index < num_bytes; index++) {
-    while(!BTserial.available()) {
+    while(!Serial.available()) {
       stepMotorsIfTime();
     }
-    receive_buffer[index] = BTserial.read();
+    receive_buffer[index] = Serial.read();
   }
 }
 
@@ -307,9 +302,9 @@ void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
  * message_id: message id for the message
  */
 void sendBluetoothMessage(uint8_t *buffer, int size, uint8_t message_id) {
-  BTserial.write(message_id);
+  Serial.write(message_id);
   for (int i = 0; i < size; i++) {
-    BTserial.write(buffer[i]);
+    Serial.write(buffer[i]);
   }
 }
 
@@ -325,12 +320,12 @@ void sendUltraSonicResponse(uint32_t duration) {
 // Process a bluetooth message if one is available
 void processBluetoothMessageIfAvailable() {
     // Check if a messages is available
-    if (!BTserial.available()) {
+    if (!Serial.available()) {
       return;
     }
 
     // Read the message ID
-    uint8_t message_id = BTserial.read();
+    uint8_t message_id = Serial.read();
 
     // If a ping request
     if (message_id == kPingRequestId) {
@@ -388,8 +383,7 @@ void setup()
     pinMode(pin, OUTPUT);
   }
   // Init bluetooth serial connection
-  BTserial.begin(9600);
-  BTserial.listen();
+  Serial.begin(9600);
 
   // Attach the servo motor and center it
   servo_motor.attach(kServoControlPin);
