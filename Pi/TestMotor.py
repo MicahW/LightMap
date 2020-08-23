@@ -12,7 +12,7 @@ try:
         time.sleep(0.2)
         v = controller.ultrasonic()
         print(v)
-        if v < 4000:
+        if v < 3000:
             controller.stop()
             break
 except Exception as e:

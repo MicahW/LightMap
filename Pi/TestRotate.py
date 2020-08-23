@@ -10,8 +10,8 @@ logger.setLevel(logging.DEBUG)
 
 controller = Controller()
 while True:
-    controller.rotate(clockwise=True)
+    controller.rotate(True, 100)
     time.sleep(3)
 
-    controller.rotate(clockwise=False)
-    time.sleep(3)
+    # controller.rotate(False, 100)
+    # time.sleep(3)

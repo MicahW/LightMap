@@ -136,15 +136,16 @@ class Controller:
 
         logger.debug('ping: exit')
 
-    def rotate(self, clockwise=True):
+    def rotate(self, clockwise, steps):
         '''
         Send a request to rotate, clockwise (True) or counter
-        clockwise (False).
+        clockwise (False) a specified amount of steps
         '''
 
-        logger.debug(f'rotate: enter: clockwise={clockwise}')
+        logger.debug(f'rotate: enter: clockwise={clockwise} steps={steps}')
 
-        self.transmit(struct.pack('BB', self.ROTATE_REQUEST_ID,
+        self.transmit(struct.pack('BBB', self.ROTATE_REQUEST_ID,
+                                  steps,
                                   (0 if clockwise else 1)))
 
         logger.debug('rotate: exit')
@@ -158,9 +159,10 @@ class Controller:
 
     def receive(self, n):
         ''' Receive n bytes from the serial device '''
-
         logger.debug(f'receive: read {n} bytes')
 
         data = self.device.read(n)
 
         logger.debug(f'receive: {data}')
+
+        return data
