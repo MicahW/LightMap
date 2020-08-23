@@ -29,6 +29,7 @@ class Controller:
     STOP_REQUEST_ID = 0x08
 
     ROTATE_REQUEST_ID = 0x09
+    ROTATE_RESPONSE_ID = 0x0A
 
     def __init__(self, device_name=DEFAULT_DEVICE_NAME):
         '''
@@ -147,6 +148,9 @@ class Controller:
         self.transmit(struct.pack('BBB', self.ROTATE_REQUEST_ID,
                                   steps,
                                   (0 if clockwise else 1)))
+
+        response_id = struct.unpack("B", self.receive(1))[0]
+        assert response_id == self.ROTATE_RESPONSE_ID
 
         logger.debug('rotate: exit')
 

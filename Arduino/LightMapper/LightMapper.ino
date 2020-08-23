@@ -51,6 +51,7 @@ static const size_t kMoveStraightId = 7;
 static const size_t kStopId = 8;
 static const size_t kRotateId = 9;
 static const size_t kRotateRequestSize = 2;
+static const size_t kRotateResponseId = 10;
 
 // A state the motor bridge pins can be in
 struct MotorBridgeState {
@@ -301,7 +302,7 @@ void readBytesIntoReceiveBuffer(uint8_t num_bytes) {
  * size: size of payload buffer
  * message_id: message id for the message
  */
-void sendBluetoothMessage(uint8_t *buffer, int size, uint8_t message_id) {
+void sendBluetoothMessage(uint8_t message_id, uint8_t *buffer = nullptr, int size = 0) {
   Serial.write(message_id);
   for (int i = 0; i < size; i++) {
     Serial.write(buffer[i]);
@@ -314,7 +315,7 @@ void sendBluetoothMessage(uint8_t *buffer, int size, uint8_t message_id) {
 void sendUltraSonicResponse(uint32_t duration) {
   uint8_t buffer[kUltrasonicResponseSize];
   memcpy(buffer, &duration, sizeof(duration));
-  sendBluetoothMessage(buffer, kUltrasonicResponseSize, kUltrasonicResponseId);
+  sendBluetoothMessage(kUltrasonicResponseId, buffer, kUltrasonicResponseSize);
 }
 
 // Process a bluetooth message if one is available
@@ -329,7 +330,7 @@ void processBluetoothMessageIfAvailable() {
 
     // If a ping request
     if (message_id == kPingRequestId) {
-      sendBluetoothMessage(nullptr, 0, kPingResponseId);
+      sendBluetoothMessage(kPingResponseId);
     }
 
     // If a motor control message
@@ -364,7 +365,7 @@ void processBluetoothMessageIfAvailable() {
     else if (message_id == kRotateId) {
       readBytesIntoReceiveBuffer(kRotateRequestSize);
       rotate(receive_buffer[0], receive_buffer[1]);
-      // TODO(mwallberg): send the motor rotate response
+      sendBluetoothMessage(kRotateResponseId);
     }
 
     // If this is a stop request
